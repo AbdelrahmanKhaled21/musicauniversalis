@@ -1,0 +1,68 @@
+.oauth-login {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.oauth-login h2 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.oauth-login p {
+  color: #666;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.github-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: #24292e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.github-login-btn:hover:not(:disabled) {
+  background: #1a1e22;
+}
+
+.github-login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.github-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #f8d7da;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+}
+
+.note {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #888;
+} 

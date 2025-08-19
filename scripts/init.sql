@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
     oauth_id VARCHAR(255),
     storage_quota BIGINT DEFAULT 10737418240, -- 10GB default
     storage_used BIGINT DEFAULT 0,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -60,6 +62,9 @@ CREATE TABLE IF NOT EXISTS playlist_songs (
 );
 
 -- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_users_oauth ON users(oauth_provider, oauth_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_is_deleted ON users(is_deleted);
 CREATE INDEX IF NOT EXISTS idx_songs_user_id ON songs(user_id);
 CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);
 CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist);

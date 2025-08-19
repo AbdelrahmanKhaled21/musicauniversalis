@@ -9,15 +9,34 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/AbdelrahmanKhaled21/musicauniversalis/config"
+	"github.com/AbdelrahmanKhaled21/musicauniversalis/handlers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Load configuration
+	cfg := config.Load()
+
 	// Set Gin mode based on environment
-	if os.Getenv("API_ENV") == "production" {
+	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// Connect to database
+	if err := config.ConnectDatabase(cfg); err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Connect to MinIO
+	if err := config.ConnectMinIO(cfg); err != nil {
+		log.Fatalf("Failed to connect to MinIO: %v", err)
+	}
+
+	// Initialize handlers
+	authHandler := handlers.NewAuthHandler(cfg, config.DB)
+	songHandler := handlers.NewSongHandler(cfg, config.DB)
 
 	// Initialize router
 	r := gin.Default()
@@ -54,31 +73,42 @@ func main() {
 			})
 		})
 
-		// Auth routes (will be implemented next)
+		// Auth routes
 		auth := v1.Group("/auth")
 		{
-			auth.GET("/login", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"message": "OAuth login endpoint - coming soon",
-					"status":  "not implemented yet",
-				})
-			})
+			auth.GET("/login", authHandler.InitiateOAuth)
+			auth.GET("/callback", authHandler.OAuthCallback)
 		}
 
-		// Songs routes (will be implemented next)
-		songs := v1.Group("/songs")
+		// Protected routes (require authentication)
+		protected := v1.Group("/")
+		protected.Use(authHandler.AuthMiddleware())
 		{
-			songs.GET("/", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"message": "Get songs endpoint - coming soon",
-					"status":  "not implemented yet",
-				})
-			})
+			// Songs routes
+			songs := protected.Group("/songs")
+			{
+				songs.GET("/", songHandler.GetUserSongs)
+				songs.POST("/upload", songHandler.UploadSong)
+				songs.GET("/:id", songHandler.GetSong)
+				songs.GET("/:id/stream", songHandler.StreamSong)
+				songs.DELETE("/:id", songHandler.DeleteSong)
+			}
 		}
+
+		// User profile
+		protected.GET("/user/profile", func(c *gin.Context) {
+			userID, _ := c.Get("user_id")
+			userEmail, _ := c.Get("user_email")
+
+			c.JSON(http.StatusOK, gin.H{
+				"user_id": userID,
+				"email":   userEmail,
+			})
+		})
 	}
 
-	// Get port from environment or default to 8080
-	port := os.Getenv("API_PORT")
+	// Get port from configuration
+	port := cfg.Port
 	if port == "" {
 		port = "8080"
 	}
